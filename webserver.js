@@ -24,6 +24,7 @@ db.on("error", function (err) {
 
 var app = express();
 
+
 // log to console when not testing
 if (!IS_TEST) app.use(morgan('combined'));
 
@@ -61,6 +62,75 @@ app.get('/mail/:user', function(req, res) {
       });
       res.set("Content-Type", "application/json");
       res.send(JSON.stringify(arr, undefined, 2));
+    }
+  });
+});
+
+app.get('/html/:user', function(req, res) {
+  if ( !db ) {
+      return IS_TEST ? res.json([]) : res.status(500).end();
+  }
+
+  req.params.user = canonicalize(req.params.user);
+
+  db.lrange(req.params.user, -10, -1, function(err, replies) { 
+    if (err) {
+      console.log(new Date().toISOString() + ": ERROR", err);
+      res.status(500).end();
+    } else {
+      var arr = [];
+      replies.forEach(function (r) {
+        try {
+          arr.push(JSON.parse(r));
+        } catch(e) {
+          console.log(new Date().toISOString() + ": ERROR", err);
+        }
+      });
+      res.set("Content-Type", "text/html");
+      var html = "<html><head><title>Email for: " + req.params.user + "</title><style>div { margin: 5px; }\niframe { width: 100%; border: 1px solid black; padding: 0;margin: 0;}\n</style></head><body><h1 style='font-family: verdana;'>Email for: " + req.params.user + "</h1>";
+      var i = 0;
+      arr.forEach(function (a)
+      {
+        var row = '<div style="border: 1px solid #ddd;">' + "\n" + '<p>To: ' + a.to[0].name + ' &lt;' + a.to[0].address + '&gt;<br />' + "\n" + 'From: ' + a.from[0].name + ' &lt;' + a.from[0].address + '&gt;<br />' + "\n" + 'Subject: ' + a.subject + '</p>' + "\n" + '<iframe src="' + req.originalUrl + '/' + i + '"></iframe>' + "\n" + '</div>' + "\n" + '';
+        html = html + row;
+        i++;
+      });
+      html = html + '</body></html>';
+      res.send(html);
+    }
+  });
+});
+
+app.get('/html/:user/:email', function(req, res) {
+  if ( !db ) {
+      return IS_TEST ? res.json([]) : res.status(500).end();
+  }
+
+  req.params.user = canonicalize(req.params.user);
+  req.params.email = parseInt(req.params.email);
+  db.lrange(req.params.user, req.params.email, req.params.email, function(err, replies) { 
+    if (err) {
+      console.log(new Date().toISOString() + ": ERROR", err);
+      res.status(500).end();
+    } else {
+      var arr = [];
+      replies.forEach(function (r) {
+        try {
+          arr.push(JSON.parse(r));
+        } catch(e) {
+          console.log(new Date().toISOString() + ": ERROR", err);
+        }
+      });
+      if ( arr[0].html )
+      {
+        res.set("Content-Type", "text/html; charset=utf-8");
+        res.send(arr[0].html);
+      }
+      else
+      {
+        res.set("Content-Type", "text/plain; charset=utf-8");
+        res.send(arr[0].text);
+      }
     }
   });
 });
