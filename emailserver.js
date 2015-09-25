@@ -20,6 +20,8 @@ if ( config.ssl_cert != null )
   options.cert = fs.readFileSync( config.ssl_cert );
 }
 
+options.port = config.port;
+
 // create a connection to the redis datastore
 var db = redis.createClient();
 

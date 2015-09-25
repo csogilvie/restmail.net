@@ -26,6 +26,7 @@ if ( config.ssl_key != null || config.ssl_cert != null )
   }
 }
 
+options.port = config.port;
 
 const HOSTNAME = process.env.EMAIL_HOSTNAME || "restmail.net";
 const IS_TEST = process.env.NODE_ENV === 'test';
