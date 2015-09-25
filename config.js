@@ -14,5 +14,12 @@ module.exports = {
   force_ssl: false,
 
   // domain: Domain Name to accept email for
-  domain: null
+  domain: null,
+
+  // port: Array of ports for software
+  port: {
+    webserver_http: 8080,
+    webserver_https: 4443,
+    mailserver: 9025
+  }
 };

@@ -194,10 +194,10 @@ app.delete('/mail/:user', function(req, res) {
 
 // handle starting from the command line or the test harness
 if (process.argv[1] === __filename) {
-  app.listen(process.env['PORT'] || 8080);
+  app.listen(options.port.webserver_http);
   if ( https != null )
   {
-    https.createServer(options, app).listen(4443);
+    https.createServer(options, app).listen(options.port.webserver_https);
   }
 } else {
   module.exports = function(cb) {
