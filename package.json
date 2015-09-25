@@ -8,10 +8,12 @@
     "mailparser": "0.4.6",
     "morgan": "1.3.2",
     "redis": "0.12.1",
-    "smtp-protocol": "2.4.4"
+    "smtp-protocol": "2.4.4",
+    "body-parser": "*"
   },
   "optionalDependencies": {
-    "hiredis": "0.1.17"
+    "hiredis": "0.1.17",
+    "express-force-ssl": "*"
   },
   "devDependencies": {
     "awsbox": "https://github.com/mozilla/awsbox/tarball/33c9de8f",

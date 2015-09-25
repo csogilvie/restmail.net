@@ -1,11 +1,24 @@
-var smtp = require('smtp-protocol'),
-   redis = require("redis"),
-   MailParser = require("mailparser").MailParser,
-   config = require("./config"),
-   util = require('util');
+var smtp = require('smtp-protocol');
+var redis = require("redis");
+var MailParser = require("mailparser").MailParser;
+var util = require('util');
+var fs = require('fs');
+var config = require("./config");
 
-const HOSTNAME = process.env.EMAIL_HOSTNAME || "restmail.net";
 const IS_TEST = process.env.NODE_ENV === 'test';
+
+var options = {};
+options.domain = process.env.EMAIL_HOSTNAME || config.domain || "restmail.net";
+
+if ( config.ssl_key != null )
+{
+  options.key = fs.readFileSync( config.ssl_key );
+}
+
+if ( config.ssl_cert != null )
+{
+  options.cert = fs.readFileSync( config.ssl_cert );
+}
 
 // create a connection to the redis datastore
 var db = redis.createClient();
@@ -22,8 +35,12 @@ function logError(err) {
   log("ERROR (oh noes!): " + err);
 }
 
-var server = smtp.createServer(HOSTNAME, function (req) {
+var server = smtp.createServer(options, function (req) {
   log('Handling SMTP request');
+
+  req.on('starttls', function( to, ack ) {
+    ack.accept( 250, 'OK' );
+  });
 
   ['rcpt', 'mail', 'to', 'from'].forEach(function(event)  {
     req.on(event, function () {
@@ -33,7 +50,7 @@ var server = smtp.createServer(HOSTNAME, function (req) {
   });
 
   req.on('greeting', function (to, ack) {
-    ack.accept(250, " ");
+    ack.accept(250, "STARTTLS");
   });
 
   req.on('message', function (stream, ack) {

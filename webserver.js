@@ -3,6 +3,29 @@ var morgan = require('morgan');
 var redis = require('redis');
 var http = require('http');
 var path = require('path');
+var fs = require('fs');
+var bodyParser = require('body-parser');
+
+var config = config = require("./config");
+
+var https = null;
+var forceSSL = null;
+
+if ( config.ssl_key != null || config.ssl_cert != null )
+{
+  try {
+    https = require('https');
+    if ( config.force_ssl )
+    {
+      forceSSL = require('express-force-ssl');
+    }
+  } catch (er) {
+    https = null;
+    forceSSL = null;
+    console.log(new Date().toISOString() + ": SSL Loading Failed; acting as if it is not loaded");
+  }
+}
+
 
 const HOSTNAME = process.env.EMAIL_HOSTNAME || "restmail.net";
 const IS_TEST = process.env.NODE_ENV === 'test';
@@ -22,16 +45,28 @@ db.on("error", function (err) {
   }
 });
 
-var app = express();
+var options = {};
+if ( config.ssl_key != null )
+{
+  options.key = fs.readFileSync( config.ssl_key );
+}
 
+if ( config.ssl_cert != null )
+{
+  options.cert = fs.readFileSync( config.ssl_cert );
+}
+
+var app = express();
+app.use( bodyParser.json() ); // to support JSON-encoded bodies
+app.use( bodyParser.urlencoded( { extended: true })); // to support URL-encoded bodies
+
+if ( forceSSL != null && config.force_ssl )
+{
+  app.use( forceSSL );
+}
 
 // log to console when not testing
 if (!IS_TEST) app.use(morgan('combined'));
-
-app.get('/README', function(req, res) {
-  res.set('Content-Type', 'text/plain');
-  res.sendFile(path.join(__dirname, 'README.md'));
-});
 
 // automatically make user part only input into email with
 // default hostname.
@@ -39,6 +74,16 @@ function canonicalize(email) {
   if (email.indexOf('@') === -1) email = email + '@' + HOSTNAME;
   return email;
 }
+
+app.get('/', function(req, res) { 
+  res.set('Content-Type', 'text/html');
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.post('/', function(req, res) {
+  var email = canonicalize( req.body.email );
+  res.redirect('/html/' + email);
+})
 
 // the 'todo/get' api gets the current version of the todo list
 // from the server
@@ -87,7 +132,7 @@ app.get('/html/:user', function(req, res) {
         }
       });
       res.set("Content-Type", "text/html");
-      var html = "<html><head><title>Email for: " + req.params.user + "</title><style>div { margin: 5px; }\niframe { width: 100%; border: 1px solid black; padding: 0;margin: 0;}\n</style></head><body><h1 style='font-family: verdana;'>Email for: " + req.params.user + "</h1>";
+      var html = "<html><head><title>Email for: " + req.params.user + "</title><style>div { margin: 5px; }\niframe { height: 400px;  width: 100%; border: 1px solid black; padding: 0;margin: 0;}\n</style></head><body><h1 style='font-family: verdana;'>Email for: " + req.params.user + "</h1>"
       var i = 0;
       arr.forEach(function (a)
       {
@@ -147,11 +192,13 @@ app.delete('/mail/:user', function(req, res) {
   });
 });
 
-app.use(express.static(__dirname + "/website"));
-
 // handle starting from the command line or the test harness
 if (process.argv[1] === __filename) {
   app.listen(process.env['PORT'] || 8080);
+  if ( https != null )
+  {
+    https.createServer(options, app).listen(4443);
+  }
 } else {
   module.exports = function(cb) {
     var server = http.createServer(app);
