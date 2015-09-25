@@ -8,7 +8,7 @@ module.exports = {
   ssl_key: null,
 
   // SSL Certificate Path: Path to the SSL Certificate file; if not set, SSL is not used
-  ssl_certificate: null,
+  ssl_cert: null,
 
   // Force SSL: Set if SSL should be forced
   force_ssl: false,
