@@ -90,8 +90,8 @@ var server = smtp.createServer(options, function (req) {
 
 // handle starting from the command line or the test harness
 if (process.argv[1] === __filename) {
-  log('Starting up on port', options.port.mailserver;);
-  server.listen(port);
+  log('Starting up on port', options.port.mailserver);
+  server.listen(options.port.mailserver);
 } else {
   module.exports = function(cb) {
     server.listen(0, function(err) {
