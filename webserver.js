@@ -26,8 +26,6 @@ if ( config.ssl_key != null || config.ssl_cert != null )
   }
 }
 
-options.port = config.port;
-
 const HOSTNAME = process.env.EMAIL_HOSTNAME || "restmail.net";
 const IS_TEST = process.env.NODE_ENV === 'test';
 
@@ -56,6 +54,8 @@ if ( config.ssl_cert != null )
 {
   options.cert = fs.readFileSync( config.ssl_cert );
 }
+
+options.port = config.port;
 
 var app = express();
 app.use( bodyParser.json() ); // to support JSON-encoded bodies
