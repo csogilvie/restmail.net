@@ -20,6 +20,11 @@ if ( config.ssl_cert != null )
   options.cert = fs.readFileSync( config.ssl_cert );
 }
 
+if ( config.ssl_ca != null )
+{
+  options.ca = fs.readFileSync( config.ssl_ca );
+}
+
 options.port = config.port;
 
 // create a connection to the redis datastore
@@ -77,7 +82,7 @@ var server = smtp.createServer(options, function (req) {
         db.llen(user, function(err, replies) {
           if (err) return logError(err);
 
-          if (replies > 10) db.ltrim(user, -10, -1, function(err) {
+          if (replies > config.email_count ) db.ltrim(user, (config.email_count * -1), -1, function(err) {
             if (err) return logError(err);
           });
         });
@@ -89,13 +94,14 @@ var server = smtp.createServer(options, function (req) {
 });
 
 // handle starting from the command line or the test harness
-if (process.argv[1] === __filename) {
+//if (process.argv[1] === __filename) {
   log('Starting up on port', options.port.mailserver);
-  server.listen(options.port.mailserver);
-} else {
+  server.listen(options.port.mailserverAre);
+/*} else {
   module.exports = function(cb) {
     server.listen(0, function(err) {
       cb(err, server.address().port);
     });
   };
 }
+*/

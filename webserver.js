@@ -55,6 +55,11 @@ if ( config.ssl_cert != null )
   options.cert = fs.readFileSync( config.ssl_cert );
 }
 
+if ( config.ssl_ca != null )
+{
+  options.ca = fs.readFileSync( config.ssl_ca );
+}
+
 options.port = config.port;
 
 var app = express();
@@ -95,7 +100,7 @@ app.get('/mail/:user', function(req, res) {
 
   req.params.user = canonicalize(req.params.user);
 
-  db.lrange(req.params.user, -10, -1, function(err, replies) {
+  db.lrange(req.params.user, (config.email_count * -1), -1, function(err, replies) {
     if (err) {
       console.log(new Date().toISOString() + ": ERROR", err);
       res.status(500).end();
@@ -119,7 +124,7 @@ app.get('/html/:user', function(req, res) {
 
   req.params.user = canonicalize(req.params.user);
 
-  db.lrange(req.params.user, -10, -1, function(err, replies) { 
+  db.lrange(req.params.user, (config.email_count * -1), -1, function(err, replies) { 
     if (err) {
       console.log(new Date().toISOString() + ": ERROR", err);
       res.status(500).end();
@@ -133,7 +138,7 @@ app.get('/html/:user', function(req, res) {
         }
       });
       res.set("Content-Type", "text/html");
-      var html = "<html><head><title>Email for: " + req.params.user + "</title><style>div { margin: 5px; }\niframe { height: 400px;  width: 100%; border: 1px solid black; padding: 0;margin: 0;}\n</style></head><body><h1 style='font-family: verdana;'>Email for: " + req.params.user + "</h1>"
+      var html = "<html><head><title>Email for: " + req.params.user + "</title><style>div { margin: 5px; }\niframe { height: 400px;  width: 100%; border: 1px solid black; padding: 0;margin: 0;}\n</style></head><body><h1 style='font-family: verdana;'>Email for: " + req.params.user + " (" + replies.length + ")</h1>"
       var i = 0;
       arr.forEach(function (a)
       {
@@ -194,13 +199,13 @@ app.delete('/mail/:user', function(req, res) {
 });
 
 // handle starting from the command line or the test harness
-if (process.argv[1] === __filename) {
+//if (process.argv[1] === __filename) {
   app.listen(options.port.webserver_http);
   if ( https != null )
   {
     https.createServer(options, app).listen(options.port.webserver_https);
   }
-} else {
+/*} else {
   module.exports = function(cb) {
     var server = http.createServer(app);
     server.listen(function() {
@@ -208,3 +213,4 @@ if (process.argv[1] === __filename) {
     });
   };
 }
+*/

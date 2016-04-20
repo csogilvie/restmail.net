@@ -10,11 +10,17 @@ module.exports = {
   // SSL Certificate Path: Path to the SSL Certificate file; if not set, SSL is not used
   ssl_cert: null,
 
+  // SSL CA
+  ssl_ca: null,
+
   // Force SSL: Set if SSL should be forced
   force_ssl: false,
 
   // domain: Domain Name to accept email for
   domain: null,
+
+  // Email Count to Keep
+  email_count: 10,
 
   // port: Array of ports for software
   port: {
