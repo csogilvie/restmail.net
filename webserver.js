@@ -66,11 +66,6 @@ var app = express();
 app.use( bodyParser.json() ); // to support JSON-encoded bodies
 app.use( bodyParser.urlencoded( { extended: true })); // to support URL-encoded bodies
 
-if ( forceSSL != null && config.force_ssl )
-{
-  app.use( forceSSL );
-}
-
 // log to console when not testing
 if (!IS_TEST) app.use(morgan('combined'));
 
@@ -81,7 +76,7 @@ function canonicalize(email) {
   return email;
 }
 
-app.get('/', function(req, res) { 
+app.get('/', forceSSL, function(req, res) { 
   res.set('Content-Type', 'text/html');
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -93,7 +88,7 @@ app.post('/', function(req, res) {
 
 // the 'todo/get' api gets the current version of the todo list
 // from the server
-app.get('/mail/:user', function(req, res) {
+app.get('/mail/:user', forceSSL, function(req, res) {
   if (!db) { 
     return IS_TEST ? res.json([]) : res.status(500).end();
   }
@@ -117,7 +112,7 @@ app.get('/mail/:user', function(req, res) {
   });
 });
 
-app.get('/html/:user', function(req, res) {
+app.get('/html/:user', forceSSL, function(req, res) {
   if ( !db ) {
       return IS_TEST ? res.json([]) : res.status(500).end();
   }
@@ -152,7 +147,7 @@ app.get('/html/:user', function(req, res) {
   });
 });
 
-app.get('/html/:user/:email', function(req, res) {
+app.get('/html/:user/:email', forceSSL, function(req, res) {
   if ( !db ) {
       return IS_TEST ? res.json([]) : res.status(500).end();
   }
@@ -186,7 +181,7 @@ app.get('/html/:user/:email', function(req, res) {
   });
 });
 
-app.delete('/mail/:user', function(req, res) {
+app.delete('/mail/:user', forceSSL, function(req, res) {
   if (!db) {
     return res.status(IS_TEST ? 200 : 500).end();
   }
